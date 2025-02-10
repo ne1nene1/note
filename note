@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# note; simple note creation (with template)
+# author: @ne1nene1 (Soulmine) 
+# usage:
+#     note [TITLE]
+#
+#     note                  ; create new note with timestamp as its name
+#     note "pizza"          ; create new note name "pizza"
+#     note -t note          ; create new note with timestamp as its name
+#                             with templale "note"
+#     note -t source "hi"   ; create new note name "hi" 
+#                             with template "source"
+#
+# please feel free to edit to your liking!
+
+# options set here: 
+# the path where your note will be store, default to ~/notes
+NOTES_DIR=${NOTES_DIR:-$HOME"/notes"}
+# defined a default template. if not empty, the script won't prompt you
+# to select a template, it will use template that match its value.
+# comment it to enable template selection
+default_template="note"
+# note file name extension
+note_extension=".md"
+
+# perform check
+if [ ! -d "$NOTES_DIR" ]; then
+    echo "note: $NOTES_DIR doesn't seem to exist"
+    mkdir -p $NOTES_DIR
+    echo "note: $NOTES_DIR has been created"
+fi
+
+# option to use template
+if [ $1 == "-t" ]; then
+    default_template="$2"
+    shift
+    shift
+fi
+
+# set note name, if no arg then use timestamp as file name
+[ -z $1 ] && note_name=$(date +%Y%m%dt%H%M%S) || note_name=$*
+note="${note_name}${note_extension}"
+
+# customize here:
+# add choices in fzf window 
+templates=$( echo "note source plan empty" | tr " " "\n")
+selected_template=${default_template:-$( echo -e "$templates" | fzf)}
+
+cd "$NOTES_DIR" || exit
+
+# customize here:
+# defined how it will create note
+case $selected_template in
+    note)
+        touch "${note}"
+        echo "---" >> "${note}"
+        echo "date_created: [[$(date +%Y-%m-%d)]]" >> "${note}"
+        echo "---" >> "${note}"
+        echo "# $note_name" >> "${note}"
+        echo "---" >> "${note}"
+        echo >> "${note}"
+        ;;
+    source|src) # easier to type
+        touch "${note}"
+        echo "---" >> "${note}"
+        echo "date_created: [[$(date +%Y-%m-%d)]]" >> "${note}"
+        echo "type: " >> "${note}"
+        echo "origin: " >> "${note}"
+        echo "tags: " >> "${note}"
+        echo "  - note/source" >> "${note}"
+        echo "---" >> "${note}"
+        echo "# $note_name" >> "${note}"
+        echo "---" >> "${note}"
+        echo >> "${note}"
+        ;;
+    plan) # custome file name
+        note="$(date +%Y-%m-%d) ${note}"
+        touch "${note}"
+        echo "---" >> "${note}"
+        echo "date_created: [[$(date +%Y-%m-%d)]]" >> "${note}"
+        echo "status: " >> "${note}"
+        echo "title: ${note_name}" >> "${note}"
+        echo "---" >> "${note}"
+        echo "# $note_name" >> "${note}"
+        echo "---" >> "${note}"
+        echo >> "${note}"
+        echo 
+        ;;
+    empty)
+        touch "${note}"
+        ;;
+    *) # if unknown option, no template (empty note will be created)
+        ;;
+esac
+
+# open note in editor
+$EDITOR "${note}"
