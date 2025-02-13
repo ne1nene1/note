@@ -19,7 +19,7 @@
 NOTES_DIR=${NOTES_DIR:-$HOME"/notes"}
 # defined a default template. if not empty, the script won't prompt you
 # to select a template, it will use template that match its value.
-# comment it to enable template selection
+# comment it to enable template selection using fzf
 default_template="note"
 # note file name extension
 note_extension=".md"
@@ -32,14 +32,14 @@ if [ ! -d "$NOTES_DIR" ]; then
 fi
 
 # option to use template
-if [ $1 == "-t" ]; then
+if [ "$1" == "-t" ]; then
     default_template="$2"
     shift
     shift
 fi
 
 # set note name, if no arg then use timestamp as file name
-[ -z $1 ] && note_name=$(date +%Y%m%dt%H%M%S) || note_name=$*
+[ -z "$1" ] && note_name=$(date +%Y%m%dt%H%M%S) || note_name=$*
 note="${note_name}${note_extension}"
 
 # customize here:
@@ -85,7 +85,7 @@ case $selected_template in
         echo "# $note_name" >> "${note}"
         echo "---" >> "${note}"
         echo >> "${note}"
-        echo 
+        echo >> "${note}"
         ;;
     empty)
         touch "${note}"
